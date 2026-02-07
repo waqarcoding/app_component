@@ -1,7 +1,9 @@
 
 name: app_component
 description: Reusable Flutter widgets for your app.
-version: 0.0.3
+version: 0.0.2
+homepage: https://github.com/waqarcoding/app_component
+repository: https://github.com/waqarcoding/app_component
 environment:
   sdk: ">=2.18.0 <4.0.0"
 dependencies:
