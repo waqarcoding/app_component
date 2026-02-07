@@ -1,0 +1,53 @@
+
+name: app_component
+description: Reusable Flutter widgets for your app.
+version: 0.0.3
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+ 
+  # --------------------------------------------------
+  # UI Components & Layout /Animations
+  # --------------------------------------------------
+  carousel_slider: ^5.0.0
+  flutter_staggered_grid_view: ^0.7.0
+  page_transition: ^2.0.7
+  chips_choice: ^3.0.1
+  choice: ^2.3.2
+  lottie: ^2.7.0
+  bounce: ^1.0.2
+
+  # --------------------------------------------------
+  # Some Fancy Icons
+  # --------------------------------------------------
+  cupertino_icons: ^1.0.6
+  eva_icons_flutter: ^3.0.2
+  font_awesome_flutter: ^10.1.0
+  line_icons: ^2.0.3
+  ionicons: ^0.2.1
+  iconsax: ^0.0.8
+  material_design_icons_flutter: ^5.0.6996
+
+
+  # --------------------------------------------------
+  # Core / System Utilities
+  # --------------------------------------------------
+  uuid: ^4.4.2                   # Unique ID generation
+  get: ^4.7.3                    # State management & routing
+  http: ^1.6.0
+
+  # --------------------------------------------------
+  # UI Styling / Themes / Fonts
+  # --------------------------------------------------
+  flex_color_scheme: ^8.2.0
+  google_fonts: ^6.2.0
+  cached_network_image: ^3.3.0
+
+
+
+
+
+flutter:
+  uses-material-design: true

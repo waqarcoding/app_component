@@ -1,0 +1,215 @@
+1. Basic Widgets
+
+Container → customizable box (color, padding, margin, border, size)
+
+Padding → adds padding around a child
+
+Align → aligns child within parent
+
+Center → centers a child
+
+SizedBox → fixed size box, spacer
+
+FittedBox → scales child to fit
+
+AspectRatio → maintains width/height ratio
+
+FractionallySizedBox → size relative to parent
+
+Expanded → fills available space in Row/Column
+
+Spacer → flexible empty space in Row/Column
+
+ClipRRect, ClipOval, ClipPath → clipping shapes
+
+DecoratedBox → custom decoration
+
+2. Text & Icon Widgets
+
+Text → display text
+
+RichText → styled spans
+
+isSelectableText → text that can be selected
+
+Icon → material icons
+
+Image → asset, network, memory
+
+CircleAvatar → circular image/avatar
+
+TextButton, ElevatedButton, OutlinedButton → buttons
+
+IconButton → tappable icon
+
+FloatingActionButton → circular action button
+
+3. Layout Widgets
+
+Row → horizontal layout
+
+Column → vertical layout
+
+Stack → overlapping children
+
+Positioned → position child inside stack
+
+Wrap → auto wrap children in multiple lines
+
+Flow → advanced custom layout
+
+ListView → scrollable vertical/horizontal list
+
+GridView → scrollable grid
+
+SingleChildScrollView → scrollable when content overflows
+
+CustomScrollView → slivers
+
+SliverList, SliverGrid → inside CustomScrollView
+
+4. Input & Form Widgets
+
+TextField → single-line or multi-line text input
+
+TextFormField → with validation
+
+Form → group multiple fields
+
+Checkbox, CheckboxListTile
+
+Radio, RadioListTile
+
+Switch, SwitchListTile
+
+Slider → continuous values
+
+RangeSlider → min/max range
+
+DropdownButton → select from list
+
+PopupMenuButton → context menu
+
+Stepper → stepper UI for multi-step forms
+
+DatePicker, TimePicker → dialogs
+
+5. Scrollable & List Widgets
+
+ListView.builder → lazy loading list
+
+ListView.separated → list with separators
+
+ListTile → standard list item (leading, title, subtitle, trailing)
+
+ReorderableListView → drag & drop list
+
+GridView.builder → lazy grid
+
+PageView → horizontal paging
+
+ScrollView → generic scrollable area
+
+Scrollbar → scroll indicator
+
+RefreshIndicator → pull-to-refresh
+
+6. Containers & Decorations
+
+Card → Material card
+
+Chip → pill-shaped info
+
+ChoiceChip → isSelectable chip
+
+ActionChip → tappable chip
+
+Divider → horizontal/vertical line
+
+ListTile → reusable row for lists
+
+ExpansionTile → collapsible list tile
+
+Material → material container
+
+PhysicalModel → shadow, clipping, elevation
+
+7. Navigation & Routing
+
+Navigator → push/pop pages
+
+MaterialPageRoute → page transition
+
+CupertinoPageRoute → iOS style transition
+
+Drawer → side navigation menu
+
+BottomNavigationBar → bottom tabs
+
+TabBar / TabBarView → top tabs
+
+PageView → swipe pages horizontally
+
+8. Animation & Interaction
+
+AnimatedContainer → animated property changes
+
+AnimatedOpacity, AnimatedAlign, AnimatedPositioned
+
+Hero → shared element transition
+
+GestureDetector → tap, swipe, drag
+
+InkWell → ripple effect on tap
+
+InkResponse → more customizable ripple
+
+Draggable → drag widget
+
+AnimatedBuilder → custom animations
+
+AnimatedSwitcher → switch widgets with animation
+
+AnimatedList → dynamic list animations
+
+9. Material Components
+
+AppBar → top bar
+
+BottomAppBar → bottom bar
+
+SnackBar → transient message
+
+AlertDialog, SimpleDialog → popups
+
+FloatingActionButton → circular button
+
+BottomSheet → modal or persistent sheet
+
+Stepper → multi-step flow
+
+Tooltip → info on long press
+
+Chip, InputChip, ChoiceChip, FilterChip, ActionChip
+
+10. Utility & Helpers
+
+FutureBuilder → async data builder
+
+StreamBuilder → stream data builder
+
+LayoutBuilder → responsive layouts
+
+MediaQuery → screen info
+
+Theme → access app theme
+
+Builder → create child with new context
+
+Offstage → hide widget but keep it in tree
+
+Visibility → hide/show widget dynamically
+
+Opacity → semi-transparent widget
+
+IgnorePointer → disable interactions
