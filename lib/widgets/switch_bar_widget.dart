@@ -1,61 +1,29 @@
 import 'package:flutter/material.dart';
 
+/// 🔹 SwitchBarWidget
 class SwitchBarWidget extends StatefulWidget {
-  /// ### Example Usage
-  ///  ```dart
+  /// Example Usage:
+  /// ```dart
   /// SwitchBarWidget(
   ///   items: [
   ///     SwitchItem(
   ///       label: 'Home',
-  ///       icon: Ionicons.sparkles,
-  ///       page: Container(
-  ///         color: Colors.blueAccent,
-  ///         alignment: Alignment.center,
-  ///         child: const Text(
-  ///           'Home',
-  ///           style: TextStyle(
-  ///             fontSize: 28,
-  ///             fontWeight: FontWeight.bold,
-  ///             color: Colors.white,
-  ///           ),
-  ///         ),
-  ///       ),
+  ///       icon: Icons.home,
+  ///       page: Container(color: Colors.blue, child: Center(child: Text('Home'))),
   ///     ),
   ///     SwitchItem(
   ///       label: 'Pending',
   ///       icon: Icons.timelapse,
-  ///       page: Container(
-  ///         color: Colors.greenAccent,
-  ///         alignment: Alignment.center,
-  ///         child: const Text(
-  ///           'Pending Tasks',
-  ///           style: TextStyle(
-  ///             fontSize: 28,
-  ///             fontWeight: FontWeight.bold,
-  ///             color: Colors.white,
-  ///           ),
-  ///         ),
-  ///       ),
+  ///       page: Container(color: Colors.green, child: Center(child: Text('Pending'))),
   ///     ),
   ///     SwitchItem(
   ///       label: 'Completed',
   ///       icon: Icons.check_circle,
-  ///       page: Container(
-  ///         color: Colors.orangeAccent,
-  ///         alignment: Alignment.center,
-  ///         child: const Text(
-  ///           'Completed Tasks',
-  ///           style: TextStyle(
-  ///             fontSize: 28,
-  ///             fontWeight: FontWeight.bold,
-  ///             color: Colors.white,
-  ///           ),
-  ///         ),
-  ///       ),
+  ///       page: Container(color: Colors.orange, child: Center(child: Text('Completed'))),
   ///     ),
   ///   ],
-  ///   onChanged: (index) {
-  ///     print('Selected index: $index');
+  ///   onSelected: (item, index) {
+  ///     print('Selected ${item.label} at index $index');
   ///   },
   /// )
   /// ```
@@ -64,12 +32,12 @@ class SwitchBarWidget extends StatefulWidget {
     super.key,
     required this.items,
     this.initialIndex = 0,
-    this.height = 48,
+    this.height = 60,
     this.borderRadius = 24,
     this.borderWidth = 1,
     this.borderColor = Colors.transparent,
     this.backgroundColor,
-    this.selectedColor = Colors.blue,
+    this.selectedColor,
     this.unselectedColor,
     this.duration = const Duration(milliseconds: 280),
     this.isCupertinoStyle = false,
@@ -77,15 +45,22 @@ class SwitchBarWidget extends StatefulWidget {
     this.padding = const EdgeInsets.all(2),
     this.margin = EdgeInsets.zero,
     this.itemSpacing = 5,
-    this.onChanged,
+    this.onSelected,
     this.pagePadding = const EdgeInsets.only(top: 10),
     this.pageBorderRadius = const BorderRadius.all(Radius.circular(5)),
     this.isSwipToChangePage = true,
+    this.itemBoxHeight,
+    this.indicatorType = IndicatorType.oval,
+    this.indicatorWidthFactor = 0.6,
+    this.indicatorHeight = 2.0,
+    this.dotSize = 6.0,
+    this.indicatorOvalBorder = 10,
   });
 
   final List<SwitchItem> items;
   final int initialIndex;
   final double height;
+  final double? itemBoxHeight;
   final double borderRadius;
   final double borderWidth;
   final Color? borderColor;
@@ -102,8 +77,14 @@ class SwitchBarWidget extends StatefulWidget {
   final double itemSpacing;
   final EdgeInsetsGeometry pagePadding;
   final BorderRadiusGeometry pageBorderRadius;
+  final IndicatorType indicatorType;
+  final double indicatorWidthFactor; // for line width
+  final double indicatorHeight; // for line thickness
+  final double dotSize; // for dot size
+  final double indicatorOvalBorder;
 
-  final ValueChanged<int>? onChanged;
+  /// 🔹 Called when a new item is selected
+  final void Function(SwitchItem item, int index)? onSelected;
 
   @override
   State<SwitchBarWidget> createState() => _SwitchBarWidgetState();
@@ -112,6 +93,7 @@ class SwitchBarWidget extends StatefulWidget {
 class _SwitchBarWidgetState extends State<SwitchBarWidget> {
   late int _currentIndex;
   late PageController _pageController;
+  bool _pageJumping = false; // Prevent double updates
 
   @override
   void initState() {
@@ -120,19 +102,18 @@ class _SwitchBarWidgetState extends State<SwitchBarWidget> {
     _pageController = PageController(initialPage: _currentIndex);
   }
 
-  bool _pageJumping = false; // Prevent double updates
   void _selectIndex(int index) {
-    _pageJumping = true; // prevent onPageChanged double update
+    _pageJumping = true;
     _currentIndex = index;
-    setState(() {}); // update header immediately
+    setState(() {});
     _pageController
         .animateToPage(
           index,
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
         )
-        .then((_) => _pageJumping = false); // allow future updates
-    widget.onChanged?.call(index);
+        .then((_) => _pageJumping = false);
+    widget.onSelected?.call(widget.items[index], index);
   }
 
   void _onPageChanged(int index) {
@@ -143,18 +124,20 @@ class _SwitchBarWidgetState extends State<SwitchBarWidget> {
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
-      setState(() {}); // update header only
-      widget.onChanged?.call(index);
+      setState(() {});
+      widget.onSelected?.call(widget.items[index], index);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final itemCount = widget.items.length;
-
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // 🔹 Header Tabs
         Container(
           height: widget.height,
           padding: widget.padding,
@@ -179,29 +162,93 @@ class _SwitchBarWidgetState extends State<SwitchBarWidget> {
 
               return Stack(
                 children: [
-                  // Sliding indicator
-                  AnimatedPositioned(
-                    duration: widget.duration,
-                    curve: Curves.easeInOut,
-                    left: indicatorLeft,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: indicatorWidth,
-                      decoration: BoxDecoration(
-                        color: widget.selectedColor,
-                        borderRadius:
-                            BorderRadius.circular(widget.borderRadius),
-                      ),
-                    ),
-                  ),
+                  // 🔹 Sliding Indicator
 
-                  // Tabs
+                  widget.indicatorType == IndicatorType.oval
+                      ? AnimatedPositioned(
+                          duration: widget.duration,
+                          curve: Curves.easeInOut,
+                          left: indicatorLeft,
+                          top: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: indicatorWidth,
+                            decoration: BoxDecoration(
+                              color:
+                                  widget.selectedColor ?? colorScheme.primary,
+                              borderRadius: BorderRadius.circular(
+                                widget.borderRadius ??
+                                    widget.indicatorOvalBorder ??
+                                    10,
+                              ),
+                            ),
+                          ),
+                        )
+                      : AnimatedPositioned(
+                          duration: widget.duration,
+                          curve: Curves.easeInOut,
+                          left: indicatorLeft,
+                          child: Builder(
+                            builder: (context) {
+                              final color =
+                                  widget.selectedColor ?? colorScheme.primary;
+
+                              switch (widget.indicatorType) {
+                                case IndicatorType.oval:
+                                case IndicatorType.dot:
+                                  return Container(
+                                    width: indicatorWidth,
+                                    height: widget.height,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Container(
+                                      margin: const EdgeInsets.only(bottom: 6),
+                                      width: widget.dotSize,
+                                      height: widget.dotSize,
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  );
+
+                                case IndicatorType.line:
+                                  return Container(
+                                    width: indicatorWidth,
+                                    height: widget.height,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Container(
+                                      margin: const EdgeInsets.only(bottom: 6),
+                                      width: indicatorWidth *
+                                          widget.indicatorWidthFactor,
+                                      height: widget.indicatorHeight,
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  );
+
+                                case IndicatorType.none:
+                                  return const SizedBox.shrink();
+                              }
+                            },
+                          ),
+                        ),
+
+                  // 🔹 Tabs
                   Row(
                     children: List.generate(itemCount, (i) {
                       final item = widget.items[i];
                       final selected = i == _currentIndex;
+                      final selectedIconColor = widget.indicatorType ==
+                              IndicatorType.oval
+                          ? (item.selectedIconColor ?? colorScheme.surface)
+                          : (item.selectedIconColor ?? colorScheme.onSurface);
 
+                      final iconColor = selected
+                          ? selectedIconColor
+                          : (item.iconColor ??
+                              colorScheme.onSurface.withOpacity(0.7));
                       return Expanded(
                         child: GestureDetector(
                           onTap: () => _selectIndex(i),
@@ -213,38 +260,41 @@ class _SwitchBarWidgetState extends State<SwitchBarWidget> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       if (item.icon != null)
-                                        Icon(
-                                          item.icon,
-                                          size: selected
-                                              ? (item.selectedIconSize ??
-                                                  item.iconSize ??
-                                                  20)
-                                              : (item.iconSize ?? 20),
-                                          color: selected
-                                              ? (item.selectedIconColor ??
-                                                  Colors.white)
-                                              : (item.iconColor ??
-                                                  Colors.black54),
-                                        ),
+                                        Icon(item.icon,
+                                            size: selected
+                                                ? (item.selectedIconSize ??
+                                                    item.iconSize ??
+                                                    17)
+                                                : (item.iconSize ?? 17),
+                                            color: iconColor),
                                       if (item.badge != null && item.badge! > 0)
-                                        Positioned(
-                                          right: -6,
-                                          top: -6,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(3),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  item.badgeColor ?? Colors.red,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Text(
-                                              '${item.badge}',
-                                              style: TextStyle(
-                                                fontSize: item.badgeSize ?? 9,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 2),
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: BoxDecoration(
+                                            color: item.badgeColor ??
+                                                colorScheme.primary,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Text(
+                                            '${item.badge}',
+                                            style: selected
+                                                ? (item.selectedLabelStyle ??
+                                                    TextStyle(
+                                                        fontSize: 12,
+                                                        color: widget
+                                                                .selectedColor ??
+                                                            colorScheme
+                                                                .surface))
+                                                : (item.labelStyle ??
+                                                    TextStyle(
+                                                        fontSize: 12,
+                                                        color: widget
+                                                                .selectedColor ??
+                                                            colorScheme
+                                                                .onSurface
+                                                                .withOpacity(
+                                                                    0.7))),
                                           ),
                                         ),
                                       const SizedBox(height: 2),
@@ -254,13 +304,28 @@ class _SwitchBarWidgetState extends State<SwitchBarWidget> {
                                         overflow: TextOverflow.ellipsis,
                                         style: selected
                                             ? (item.selectedLabelStyle ??
-                                                const TextStyle(
+                                                TextStyle(
                                                     fontSize: 12,
-                                                    color: Colors.white))
+                                                    color: widget
+                                                                .indicatorType ==
+                                                            IndicatorType.oval
+                                                        ? widget.selectedColor ??
+                                                            colorScheme.surface
+                                                        : widget.selectedColor ??
+                                                            colorScheme
+                                                                .onSurface))
                                             : (item.labelStyle ??
-                                                const TextStyle(
+                                                TextStyle(
                                                     fontSize: 12,
-                                                    color: Colors.black54)),
+                                                    color: widget
+                                                                .indicatorType ==
+                                                            IndicatorType.oval
+                                                        ? widget.selectedColor ??
+                                                            colorScheme
+                                                                .onSurface
+                                                        : widget.selectedColor ??
+                                                            colorScheme
+                                                                .onSurface)),
                                       ),
                                     ],
                                   )
@@ -330,31 +395,31 @@ class _SwitchBarWidgetState extends State<SwitchBarWidget> {
           ),
         ),
 
-        // PageView
+        // 🔹 PageView
         Padding(
           padding: widget.pagePadding,
           child: SizedBox(
-            height: 300,
+            height: widget.itemBoxHeight ?? 300,
             child: PageView.builder(
               physics: widget.isSwipToChangePage
-                  ? AlwaysScrollableScrollPhysics()
-                  : NeverScrollableScrollPhysics(), // 🔹 disables swipe
+                  ? const AlwaysScrollableScrollPhysics()
+                  : const NeverScrollableScrollPhysics(),
               controller: _pageController,
               itemCount: widget.items.length,
-              onPageChanged: (i) => _onPageChanged(i),
+              onPageChanged: _onPageChanged,
               itemBuilder: (context, index) => ClipRRect(
                 borderRadius: widget.pageBorderRadius,
                 child: widget.items[index].page,
               ),
             ),
           ),
-        )
+        ),
       ],
     );
   }
 }
 
-/// 🔹 Toggle Item
+/// 🔹 Switch Item
 class SwitchItem {
   final String label;
   final IconData? icon;
@@ -380,15 +445,22 @@ class SwitchItem {
   const SwitchItem({
     required this.label,
     this.icon,
-    this.iconSize = 20,
+    this.iconSize,
     this.selectedIconSize,
     this.iconColor,
     this.selectedIconColor,
     this.labelStyle,
     this.selectedLabelStyle,
     this.badge,
-    this.badgeSize = 7,
-    this.badgeColor = Colors.blue,
+    this.badgeSize,
+    this.badgeColor,
     this.page = const SizedBox(),
   });
+}
+
+enum IndicatorType {
+  oval,
+  dot,
+  line,
+  none,
 }

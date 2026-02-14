@@ -1,4 +1,3 @@
-import 'package:app_component/core/constants/theme_constants.dart';
 import 'package:flutter/material.dart';
 
 class TabBarWidget<T> extends StatefulWidget implements PreferredSizeWidget {
@@ -15,7 +14,7 @@ class TabBarWidget<T> extends StatefulWidget implements PreferredSizeWidget {
   // Additional customization
   final double height;
   final double borderRadius;
-  final Color? backgroundColor;
+
   final Color? selectedColor;
   final Color? unselectedColor;
   final EdgeInsetsGeometry padding;
@@ -31,11 +30,10 @@ class TabBarWidget<T> extends StatefulWidget implements PreferredSizeWidget {
     this.initialIndex = 0,
     this.height = 56,
     this.borderRadius = 14,
-    this.backgroundColor,
     this.selectedColor,
     this.unselectedColor,
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-    this.margin = EdgeInsets.zero,
+    this.margin = const EdgeInsets.only(right: 20),
     this.itemSpacing = 5,
   });
 
@@ -62,13 +60,6 @@ class _TabBarWidgetState<T> extends State<TabBarWidget<T>>
       vsync: this,
       initialIndex: widget.initialIndex.clamp(0, widget.tabs.length - 1),
     );
-
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        widget.onTabChanged(_tabController.index);
-        setState(() {});
-      }
-    });
   }
 
   @override
@@ -89,10 +80,13 @@ class _TabBarWidgetState<T> extends State<TabBarWidget<T>>
   @override
   Widget build(BuildContext context) {
     final selectedIndex = _tabController.index;
+    final colorScheme = Theme.of(context).colorScheme;
 
+    print(colorScheme.onSurface);
     return SizedBox(
       height: widget.height,
       child: TabBar(
+        tabAlignment: TabAlignment.start,
         dividerColor: Colors.transparent,
         controller: _tabController,
         isScrollable: true,
@@ -112,22 +106,26 @@ class _TabBarWidgetState<T> extends State<TabBarWidget<T>>
             padding: widget.padding,
             decoration: BoxDecoration(
               color: isSelected
-                  ? (widget.selectedColor ?? AppColors.surface)
-                  : (widget.unselectedColor ??
-                      (widget.backgroundColor ??
-                          AppColors.surface.withOpacity(0.15))),
+                  ? (widget.selectedColor ?? colorScheme.primary)
+                  : (widget.unselectedColor ?? colorScheme.surface),
               borderRadius: BorderRadius.circular(widget.borderRadius),
             ),
             child: Text(
               widget.labelBuilder(item),
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected
+                    ? colorScheme.surface
+                    : colorScheme.onSurface.withOpacity(0.7),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
             ),
           );
         }),
-        onTap: widget.onTabChanged,
+        onTap: (index) {
+          _tabController.index = index; // instant change
+          widget.onTabChanged(index);
+          setState(() {});
+        },
       ),
     );
   }

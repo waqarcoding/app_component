@@ -21,7 +21,7 @@ class AppListView<T> extends StatefulWidget {
     this.padding = const EdgeInsets.all(12),
 
     // Background
-    this.backgroundColor=Colors.white,
+    this.backgroundColor = Colors.white,
 
     // Content builders
     this.titleBuilder,
@@ -46,8 +46,7 @@ class AppListView<T> extends StatefulWidget {
     this.subtitleStyle,
 
     // Selected / Unselected TEXT styles
-    this.selectedTitleStyle =
-    const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+    this.selectedTitleStyle = const TextStyle(color: Colors.white),
     this.unselectedTitleStyle,
     this.selectedSubtitleStyle = const TextStyle(color: Colors.white),
     this.unselectedSubtitleStyle,
@@ -60,25 +59,24 @@ class AppListView<T> extends StatefulWidget {
 
     // Search
     this.isSearchable = false,
-    this.searchHint = 'Search...',
-    this.searchHintStyle, // NEW
-    this.searchLeadingIcon,
-    this.searchTrailingIcon,
-    this.searchHeight = 70,
-    this.searchBorderRadius,
-
-    this.searchBorderColor,
-    this.searchBorderWidth = 0,
-
+    this.searchHint = 'Search items...',
+    this.searchHintStyle,
+    this.searchLeadingIcon = Icons.search,
+    this.searchTrailingIcon = Icons.clear,
+    this.searchHeight = 56,
+    this.searchBorderRadius = 12,
+    this.searchFillColor = Colors.white,
+    this.searchFillActiveColor = const Color(0xFFF2F2F2),
+    this.searchBorderColor = Colors.grey,
+    this.searchBorderWidth = 1,
     // Search icon styles
     this.searchLeadingIconStyle = const IconThemeData(color: Colors.grey),
     this.searchTrailingIconStyle = const IconThemeData(color: Colors.grey),
-
     this.onSearchChanged,
 
     // List title
     this.isShowTitle = true,
-    this.listTitle="Items",
+    this.listTitle = "Items",
     this.listTitleStyle,
     this.listFilterIcon = Icons.filter_list,
     this.listFilterIconStyle,
@@ -87,7 +85,8 @@ class AppListView<T> extends StatefulWidget {
     this.onFilterSelected,
 
     // No results widget
-    this.noResultsWidget, this.searchPadding,
+    this.noResultsWidget,
+    this.searchPadding,
   });
 
   final List<T> items;
@@ -152,10 +151,11 @@ class AppListView<T> extends StatefulWidget {
   final IconData? searchTrailingIcon;
   final double searchHeight;
   final double? searchBorderRadius;
-  final Color? searchFillColor=  Colors.white;
+  final Color? searchFillColor;
+  final Color? searchFillActiveColor;
   final Color? searchBorderColor;
   final double searchBorderWidth;
-  final EdgeInsetsGeometry?  searchPadding;
+  final EdgeInsetsGeometry? searchPadding;
 
   // Search icon styles
   final IconThemeData? searchLeadingIconStyle;
@@ -184,7 +184,7 @@ class _AppListViewState<T> extends State<AppListView<T>> {
   String _searchQuery = '';
   T? _selectedItem;
   String _selectedFilter = 'New';
-
+  final FocusNode _searchFocusNode = FocusNode();
   var selectedColor;
 
   @override
@@ -192,10 +192,16 @@ class _AppListViewState<T> extends State<AppListView<T>> {
     super.initState();
     _selectedItem = widget.selectedItem;
 
-    selectedColor=widget.backgroundColor;
+    selectedColor = widget.backgroundColor;
     if (widget.filterNames.isNotEmpty) {
       _selectedFilter = widget.filterNames[0];
     }
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   List<T> _applyFilter(List<T> items) {
@@ -212,11 +218,11 @@ class _AppListViewState<T> extends State<AppListView<T>> {
     // Apply search
     var displayedItems = widget.isSearchable && _searchQuery.isNotEmpty
         ? widget.items.where((item) {
-      final title = widget.titleBuilder?.call(item) ?? item.toString();
-      final subtitle = widget.subtitleBuilder?.call(item) ?? '';
-      return title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          subtitle.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList()
+            final title = widget.titleBuilder?.call(item) ?? item.toString();
+            final subtitle = widget.subtitleBuilder?.call(item) ?? '';
+            return title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                subtitle.toLowerCase().contains(_searchQuery.toLowerCase());
+          }).toList()
         : [...widget.items];
 
     // Apply filter dynamically
@@ -227,10 +233,12 @@ class _AppListViewState<T> extends State<AppListView<T>> {
         // Search field
         if (widget.isSearchable)
           Padding(
-            padding: widget.searchPadding??EdgeInsets.only(top: 10,bottom:0),
+            padding:
+                widget.searchPadding ?? EdgeInsets.only(top: 10, bottom: 0),
             child: SizedBox(
               height: widget.searchHeight,
               child: TextField(
+                focusNode: _searchFocusNode,
                 onChanged: (value) {
                   setState(() => _searchQuery = value);
                   widget.onSearchChanged?.call(value);
@@ -240,36 +248,45 @@ class _AppListViewState<T> extends State<AppListView<T>> {
                   hintStyle: widget.searchHintStyle ??
                       theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
                   filled: true,
-                  fillColor: widget.searchFillColor,
+
+                  // 🔥 FIX: dynamic active/inactive color
+                  fillColor: _searchFocusNode.hasFocus
+                      ? widget.searchFillActiveColor
+                      : widget.searchFillColor,
+
                   prefixIcon: widget.searchLeadingIcon != null
                       ? Icon(widget.searchLeadingIcon,
-                      color: widget.searchLeadingIconStyle?.color)
+                          color: widget.searchLeadingIconStyle?.color)
                       : null,
                   suffixIcon: widget.searchTrailingIcon != null
                       ? Icon(widget.searchTrailingIcon,
-                      color: widget.searchTrailingIconStyle?.color)
+                          color: widget.searchTrailingIconStyle?.color)
                       : null,
                   contentPadding: EdgeInsets.symmetric(
                     vertical: (widget.searchHeight - 24) / 2,
                     horizontal: 12,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(widget.searchBorderRadius ?? 12),
+                    borderRadius:
+                        BorderRadius.circular(widget.searchBorderRadius ?? 12),
                     borderSide: BorderSide(
                         width: widget.searchBorderWidth,
                         color: widget.searchBorderColor ?? theme.dividerColor),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(widget.searchBorderRadius ?? 12),
+                    borderRadius:
+                        BorderRadius.circular(widget.searchBorderRadius ?? 12),
                     borderSide: BorderSide(
                         width: widget.searchBorderWidth,
-                        color: widget.searchBorderColor ?? Colors.transparent),
+                        color: widget.searchBorderColor ?? theme.dividerColor),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(widget.searchBorderRadius ?? 12),
+                    borderRadius:
+                        BorderRadius.circular(widget.searchBorderRadius ?? 12),
                     borderSide: BorderSide(
                         width: widget.searchBorderWidth,
-                        color: widget.searchBorderColor ?? Colors.transparent),
+                        color: widget.searchBorderColor ??
+                            theme.colorScheme.primary),
                   ),
                 ),
               ),
@@ -279,10 +296,8 @@ class _AppListViewState<T> extends State<AppListView<T>> {
         // List Title + Filter
         if (widget.isShowTitle)
           Padding(
-            padding:  EdgeInsets.only(top: 0,bottom: 5),
+            padding: EdgeInsets.only(top: 0, bottom: 5),
             child: Row(
-
-
               children: [
                 Expanded(
                   child: Text(
@@ -292,16 +307,17 @@ class _AppListViewState<T> extends State<AppListView<T>> {
                 ),
                 if (widget.isShowFilter)
                   PopupMenuButton<String>(
-                    icon: Icon(widget.listFilterIcon, color: widget.listFilterIconStyle?.color),
+                    icon: Icon(widget.listFilterIcon,
+                        color: widget.listFilterIconStyle?.color),
                     onSelected: (filter) {
                       setState(() => _selectedFilter = filter);
                       widget.onFilterSelected?.call(filter);
                     },
                     itemBuilder: (context) => widget.filterNames
                         .map((filter) => PopupMenuItem(
-                      value: filter,
-                      child: Text(filter),
-                    ))
+                              value: filter,
+                              child: Text(filter),
+                            ))
                         .toList(),
                   ),
               ],
@@ -311,77 +327,95 @@ class _AppListViewState<T> extends State<AppListView<T>> {
         // List items
         Expanded(
           child: displayedItems.isEmpty
-              ? widget.noResultsWidget ?? const Center(child: Text('No results found'))
+              ? widget.noResultsWidget ??
+                  const Center(child: Text('No results found'))
               : ListView.separated(
-            itemCount: displayedItems.length,
-            separatorBuilder: (_, __) => SizedBox(height: widget.dividerHeight ?? 8),
-            itemBuilder: (context, index) {
-              final item = displayedItems[index];
-              final isSelected = widget.isSelectable && item == _selectedItem;
+                  itemCount: displayedItems.length,
+                  separatorBuilder: (_, __) =>
+                      SizedBox(height: widget.dividerHeight ?? 8),
+                  itemBuilder: (context, index) {
+                    final item = displayedItems[index];
+                    final isSelected =
+                        widget.isSelectable && item == _selectedItem;
 
-              return InkWell(
-                borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
-                onTap: () {
-                  if (widget.isSelectable) setState(() => _selectedItem = item);
-                  widget.onTap?.call(item);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  padding: widget.padding,
-                  decoration: BoxDecoration(
-                    color: isSelected ? widget.selectedColor : widget.unselectedColor,
-                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
-                  ),
-                  child: Row(
-                    children: [
-                      if (widget.leadingIconBuilder != null) ...[
-                        Icon(
-                          widget.leadingIconBuilder!(item),
-                          size: widget.iconSize,
+                    return InkWell(
+                      borderRadius:
+                          BorderRadius.circular(widget.borderRadius ?? 12),
+                      onTap: () {
+                        if (widget.isSelectable)
+                          setState(() => _selectedItem = item);
+                        widget.onTap?.call(item);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        padding: widget.padding,
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? widget.selectedLeadingIconStyle?.color
-                              : widget.unselectedLeadingIconStyle?.color ?? widget.leadingIconColor,
+                              ? widget.selectedColor
+                              : widget.unselectedColor,
+                          borderRadius:
+                              BorderRadius.circular(widget.borderRadius ?? 12),
                         ),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              widget.titleBuilder?.call(item) ?? item.toString(),
-                              style: isSelected
-                                  ? widget.selectedTitleStyle
-                                  : widget.unselectedTitleStyle ?? widget.titleStyle ?? theme.textTheme.bodyLarge,
+                            if (widget.leadingIconBuilder != null) ...[
+                              Icon(
+                                widget.leadingIconBuilder!(item),
+                                size: widget.iconSize,
+                                color: isSelected
+                                    ? widget.selectedLeadingIconStyle?.color
+                                    : widget.unselectedLeadingIconStyle
+                                            ?.color ??
+                                        widget.leadingIconColor,
+                              ),
+                              const SizedBox(width: 12),
+                            ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.titleBuilder?.call(item) ??
+                                        item.toString(),
+                                    style: isSelected
+                                        ? widget.selectedTitleStyle
+                                        : widget.unselectedTitleStyle ??
+                                            widget.titleStyle ??
+                                            theme.textTheme.bodyLarge,
+                                  ),
+                                  if (widget.subtitleBuilder != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      widget.subtitleBuilder!(item),
+                                      style: isSelected
+                                          ? widget.selectedSubtitleStyle
+                                          : widget.unselectedSubtitleStyle ??
+                                              widget.subtitleStyle ??
+                                              theme.textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                            if (widget.subtitleBuilder != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                widget.subtitleBuilder!(item),
-                                style: isSelected
-                                    ? widget.selectedSubtitleStyle
-                                    : widget.unselectedSubtitleStyle ?? widget.subtitleStyle ?? theme.textTheme.bodySmall,
+                            if (widget.trailingIconBuilder != null) ...[
+                              const SizedBox(width: 12),
+                              Icon(
+                                widget.trailingIconBuilder!(item),
+                                size: widget.iconSize,
+                                color: isSelected
+                                    ? widget.selectedTrailingIconStyle?.color
+                                    : widget.unselectedTrailingIconStyle
+                                            ?.color ??
+                                        widget.trailingIconColor ??
+                                        theme.iconTheme.color,
                               ),
                             ],
                           ],
                         ),
                       ),
-                      if (widget.trailingIconBuilder != null) ...[
-                        const SizedBox(width: 12),
-                        Icon(
-                          widget.trailingIconBuilder!(item),
-                          size: widget.iconSize,
-                          color: isSelected
-                              ? widget.selectedTrailingIconStyle?.color
-                              : widget.unselectedTrailingIconStyle?.color ?? widget.trailingIconColor ?? theme.iconTheme.color,
-                        ),
-                      ],
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );

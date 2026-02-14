@@ -11,21 +11,21 @@ class ChipWidget<T> extends StatefulWidget {
     this.alignment = WrapAlignment.start, // overall chips alignment
 
     // Radio icon
-    this.isEnabledRadioBtn = false,
+    this.isEnabledRadioBtn = true,
     this.initialIndex = 0,
     this.selectedRadioIcon = Icons.check_circle,
-    this.unselectedRadioIcon,
+    this.unselectedRadioIcon = Icons.radio_button_off,
     this.selectedRadioIconColor,
-    this.unselectedRadioIconColor,
+    this.unselectedRadioIconColor = Colors.black26,
     this.radioIconSize = 18,
 
     // Colors
-    this.selectedColor = Colors.blue,
-    this.unselectedColor = Colors.white,
+    this.selectedColor,
+    this.unselectedColor,
 
     // Text styles
-    this.selectedTextStyle = const TextStyle(color: Colors.white),
-    this.unselectedTextStyle = const TextStyle(color: Colors.black),
+    this.selectedTextStyle,
+    this.unselectedTextStyle,
 
     // UI
     this.borderRadius = 20,
@@ -61,12 +61,12 @@ class ChipWidget<T> extends StatefulWidget {
   final double radioIconSize;
 
   // Colors
-  final Color selectedColor;
-  final Color unselectedColor;
+  final Color? selectedColor;
+  final Color? unselectedColor;
 
   // Text styles
-  final TextStyle selectedTextStyle;
-  final TextStyle unselectedTextStyle;
+  final TextStyle? selectedTextStyle;
+  final TextStyle? unselectedTextStyle;
 
   // UI
   final double borderRadius;
@@ -100,6 +100,8 @@ class _ChipWidgetState<T> extends State<ChipWidget<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return SizedBox(
       height: widget.chipHeight,
       child: SingleChildScrollView(
@@ -112,20 +114,24 @@ class _ChipWidgetState<T> extends State<ChipWidget<T>> {
             final value = widget.values[index];
             final isSelected = selectedIndex == index;
 
-            final label =
-                widget.labelBuilder?.call(value) ?? value.toString();
+            final label = widget.labelBuilder?.call(value) ?? value.toString();
 
             final baseWidth =
                 widget.chipWidth ?? (label.length > 10 ? 140 : 90);
 
-            final width =
-            widget.isEnabledRadioBtn ? baseWidth + 26 : baseWidth;
+            final width = widget.isEnabledRadioBtn ? baseWidth + 26 : baseWidth;
 
-            final textStyle =
-            isSelected ? widget.selectedTextStyle : widget.unselectedTextStyle;
+            final textStyle = isSelected
+                ? widget.selectedTextStyle
+                : widget.unselectedTextStyle;
 
             final decoration = BoxDecoration(
-              color: isSelected ? widget.selectedColor : widget.unselectedColor,
+              color: isSelected
+                  ? (widget.selectedColor ??
+                      colorScheme.primary) // selected uses surface
+                  : (widget.unselectedColor ??
+                      colorScheme.surface
+                          .withOpacity(0.7)), // unselected lighter
               borderRadius: BorderRadius.circular(widget.borderRadius),
               border: Border.all(
                 color: widget.borderColor,
@@ -134,7 +140,9 @@ class _ChipWidgetState<T> extends State<ChipWidget<T>> {
             );
 
             final content = Row(
-              mainAxisAlignment: MainAxisAlignment.start, // align content to start
+              mainAxisAlignment: widget.isEnabledRadioBtn
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.center, // align content to start
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -151,8 +159,9 @@ class _ChipWidgetState<T> extends State<ChipWidget<T>> {
                       key: ValueKey(isSelected),
                       size: widget.radioIconSize,
                       color: isSelected
-                          ? widget.selectedRadioIconColor ?? textStyle.color
-                          : widget.unselectedRadioIconColor ?? textStyle.color,
+                          ? widget.selectedRadioIconColor ?? colorScheme.surface
+                          : widget.unselectedRadioIconColor ??
+                              colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -160,19 +169,23 @@ class _ChipWidgetState<T> extends State<ChipWidget<T>> {
                 Flexible(
                   child: isSelected
                       ? AnimatedDefaultTextStyle(
-                    duration: widget.animationDuration,
-                    curve: widget.animationCurve,
-                    style: textStyle,
-                    child: Text(
-                      label,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )
+                          duration: widget.animationDuration,
+                          curve: widget.animationCurve,
+                          style: textStyle ?? TextStyle(color: Colors.white),
+                          child: Text(
+                            label,
+                            overflow: TextOverflow.ellipsis,
+                            style: textStyle,
+                          ),
+                        )
                       : Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: textStyle,
-                  ),
+                          label,
+                          overflow: TextOverflow.ellipsis,
+                          style: textStyle ??
+                              TextStyle(
+                                  color:
+                                      colorScheme.onSurface.withOpacity(0.7)),
+                        ),
                 ),
               ],
             );
@@ -190,7 +203,7 @@ class _ChipWidgetState<T> extends State<ChipWidget<T>> {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(widget.borderRadius),
-                    splashColor: widget.selectedColor.withOpacity(0.2),
+                    splashColor: Colors.transparent,
                     highlightColor: Colors.transparent,
                     onTapDown: widget.enableTapEffect
                         ? (_) => setState(() => pressedIndex = index)
@@ -207,17 +220,17 @@ class _ChipWidgetState<T> extends State<ChipWidget<T>> {
                     },
                     child: isSelected
                         ? AnimatedContainer(
-                      duration: widget.animationDuration,
-                      curve: widget.animationCurve,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: decoration,
-                      child: content,
-                    )
+                            duration: widget.animationDuration,
+                            curve: widget.animationCurve,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: decoration,
+                            child: content,
+                          )
                         : Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: decoration,
-                      child: content,
-                    ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: decoration,
+                            child: content,
+                          ),
                   ),
                 ),
               ),

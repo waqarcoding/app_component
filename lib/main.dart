@@ -1,17 +1,20 @@
-import 'package:app_component/widgets/app_container.dart';
+import 'package:app_component/core/app_theme.dart';
 import 'package:app_component/widgets/chip_widget.dart';
-import 'package:app_component/widgets/gradient_container_widget.dart';
+import 'package:app_component/widgets/crousel_widget.dart';
+import 'package:app_component/widgets/empty_widget.dart';
+import 'package:app_component/widgets/image_widget.dart';
 import 'package:app_component/widgets/neon_input_widget.dart';
 import 'package:app_component/widgets/appbar_widget.dart';
-import 'package:app_component/widgets/appgrid_widget.dart';
 import 'package:app_component/widgets/applist_widget.dart';
-import 'package:app_component/widgets/appbar_widget.dart';
+import 'package:app_component/widgets/pattern_background.dart';
 import 'package:app_component/widgets/radiogroup_widget.dart';
+import 'package:app_component/widgets/silverlist.dart';
 import 'package:app_component/widgets/switch_bar_widget.dart';
 import 'package:app_component/widgets/tab_bar_widget.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:app_component/widgets/widgets.dart';
+
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:ionicons/ionicons.dart';
 
 void main() {
@@ -26,6 +29,11 @@ class ExampleApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'App Widget Example',
+
+      theme: AppTheme.light, // Light theme
+      darkTheme: AppTheme.dark, // Dark theme
+      themeMode: ThemeMode.light, // Automatic light/dark based on system
+
       home: const ExampleHome(),
     );
   }
@@ -52,8 +60,6 @@ class ExampleHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = TextEditingController();
-
     return Scaffold(
       appBar: AppBarWidget<User>(
         title: "Users",
@@ -78,6 +84,39 @@ class ExampleHome extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              CarouselWidget(
+                items: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      "https://picsum.photos/800/400?random=1",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      "https://picsum.photos/800/400?random=2",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      "https://picsum.photos/800/400?random=3",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      "https://picsum.photos/800/400?random=4",
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ],
+                indicatorType: CarouselIndicatorType.dot,
+              ),
               SizedBox(height: 10),
               TabBarWidget(tabs: [
                 'Card',
@@ -94,30 +133,15 @@ class ExampleHome extends StatelessWidget {
                 'ExpansionPanel',
               ], onTabChanged: (index) {}, labelBuilder: (label) => label),
               SizedBox(height: 10),
-              Title('Neon Input Tab'),
-              Center(
-                child: NeonInputBox(
-                  tabs: const ['Text', 'Lyrics', 'Image'],
-                ),
-              ),
               Title('ChipWidget'),
               ChipWidget<String>(
                 values: ['Basic', 'Pro', 'Enterprise'],
-                alignment: WrapAlignment.center,
-                isEnabledRadioBtn: true,
-                unselectedRadioIcon:
-                    Icons.radio_button_off, // 👈 hide when unselected
-                selectedRadioIcon: Icons.check_circle,
-
-                unselectedRadioIconColor: Colors.black26,
-
-                enableTapEffect: true,
                 onSelected: (v, i) {
                   debugPrint('$v');
                 },
               ),
               Title('SwitchBarWidget'),
-              SwitchBarWidget(items: [
+              SwitchBarWidget(indicatorType: IndicatorType.dot, items: [
                 SwitchItem(
                   label: 'Home',
                   icon: Ionicons.sparkles,
@@ -167,8 +191,7 @@ class ExampleHome extends StatelessWidget {
               Title('RadioGroupWidget'),
               RadioGroupWidget<String>(
                 items: ['Basic', 'Pro', 'Enterprise'],
-                titleBuilder: (v) => v,
-                subtitleBuilder: (v) => 'Plan: $v',
+                subtitle: 'Plan:',
                 onChanged: (item) {
                   print("Selected:$item");
                 },
@@ -180,8 +203,8 @@ class ExampleHome extends StatelessWidget {
                   isShowFilter: true,
                   isSelectable: true,
                   filterNames: ['New', 'Old'],
-                  searchTrailingIcon: Icons.search,
                   isSearchable: true,
+                  listTitle: "list",
                   items: [
                     'Card',
                     'Slider',
@@ -196,7 +219,6 @@ class ExampleHome extends StatelessWidget {
                     'ListTile',
                     'ExpansionPanel',
                   ],
-                  leadingIconBuilder: (icon) => Icons.menu_book_sharp,
                   subtitleBuilder: (s) => "Detail text here",
                   onTap: (e) => debugPrint('Tapped $e'),
                 ),

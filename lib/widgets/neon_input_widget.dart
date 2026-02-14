@@ -3,11 +3,20 @@ import 'package:flutter/material.dart';
 class NeonInputBox extends StatefulWidget {
   final TextEditingController? controller;
   final List<String> tabs;
+  final String? hint;
 
+  /// Optional custom colors for each tab index
+  final List<Color>? tabColors;
+
+  /// Optional bottom-left widget (default is settings icon)
+  final Widget? bottomLeftWidget;
   const NeonInputBox({
     super.key,
     this.controller,
     required this.tabs,
+    this.tabColors,
+    this.bottomLeftWidget,
+    this.hint,
   });
 
   @override
@@ -21,7 +30,13 @@ class _NeonInputBoxState extends State<NeonInputBox> {
   @override
   void initState() {
     super.initState();
+
     _controller = widget.controller ?? TextEditingController();
+
+    // Add listener to update character count dynamically
+    _controller.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -33,13 +48,18 @@ class _NeonInputBoxState extends State<NeonInputBox> {
   }
 
   Color colorForIndex(int index) {
-    const colors = [
+    if (widget.tabColors != null && index < widget.tabColors!.length) {
+      return widget.tabColors![index];
+    }
+
+    const defaultColors = [
       Color(0xFF8B5CF6), // purple
       Color(0xFF3B82F6), // blue
       Color(0xFFEC4899), // pink
-      Color(0xFF22C55E), // green (extra safe)
+      Color(0xFF22C55E), // green
     ];
-    return colors[index % colors.length];
+
+    return defaultColors[index % defaultColors.length];
   }
 
   Color get activeBorderColor => colorForIndex(selectedIndex);
@@ -84,7 +104,8 @@ class _NeonInputBoxState extends State<NeonInputBox> {
                         maxLines: null,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: "Write ${widget.tabs[selectedIndex]} here…",
+                          hintText: widget.hint ??
+                              "Write ${widget.tabs[selectedIndex]} here…",
                           hintStyle: const TextStyle(color: Colors.white54),
                           border: InputBorder.none,
                         ),
@@ -93,7 +114,8 @@ class _NeonInputBoxState extends State<NeonInputBox> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(Icons.settings, color: Colors.white),
+                        widget.bottomLeftWidget ??
+                            const Icon(Icons.settings, color: Colors.white),
                         Text(
                           "${_controller.text.length}/500",
                           style: const TextStyle(
@@ -118,7 +140,7 @@ class _NeonInputBoxState extends State<NeonInputBox> {
     const overlap = 30.0;
     const tabWidth = 110.0;
 
-    final tabWidgets = <Widget>[];
+    final tabWidgets = <Positioned>[];
 
     for (int i = 0; i < widget.tabs.length; i++) {
       tabWidgets.add(
@@ -129,17 +151,14 @@ class _NeonInputBoxState extends State<NeonInputBox> {
       );
     }
 
-    // Active tab on top
+    // Sort so active tab is drawn last (on top)
     tabWidgets.sort((a, b) {
-      final aChild = (a as Positioned).child as InkWell;
-      final bChild = (b as Positioned).child as InkWell;
+      final aIndex = (a.child.key as ValueKey<int>).value;
+      final bIndex = (b.child.key as ValueKey<int>).value;
 
-      final aIndex = ((bChild.key as ValueKey<int>).value);
-      final bIndex = ((aChild.key as ValueKey<int>).value);
-
-      return (aIndex - selectedIndex)
-          .abs()
-          .compareTo((bIndex - selectedIndex).abs());
+      if (aIndex == selectedIndex) return 1; // active tab last
+      if (bIndex == selectedIndex) return -1;
+      return aIndex.compareTo(bIndex);
     });
 
     return SizedBox(
@@ -152,23 +171,41 @@ class _NeonInputBoxState extends State<NeonInputBox> {
   Widget _tab(String text, int index) {
     final isActive = index == selectedIndex;
     final color = colorForIndex(index);
+    // Distance from active tab
+    final distance = (index - selectedIndex).abs();
+
+    // Active tab margin animates
+    final topMargin = isActive
+        ? 4.0 // small top margin for active tab
+        : 4.0 + distance * 4; // neighbors stay in place
 
     return InkWell(
       key: ValueKey(index),
-      onTap: () => setState(() => selectedIndex = index),
+      onTap: () {
+        // Update active tab index on click
+        setState(() {
+          selectedIndex = index;
+        });
+      },
       borderRadius: BorderRadius.circular(6),
       child: AnimatedContainer(
-        key: ValueKey(index),
-        duration: Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 500), // neighbors do not animate
         curve: Curves.bounceOut,
         height: 150,
         width: 100,
-        margin: EdgeInsets.only(top: isActive ? 4 : 8),
-        padding:
-            EdgeInsets.symmetric(horizontal: 14, vertical: isActive ? 8 : 3),
+        margin: EdgeInsets.only(top: topMargin),
+        padding: EdgeInsets.symmetric(vertical: isActive ? 4 : 1),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            if (isActive)
+              BoxShadow(
+                color: color.withOpacity(0.5),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+          ],
         ),
         child: Text(
           text,

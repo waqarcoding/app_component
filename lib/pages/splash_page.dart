@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:app_component/core/core.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashPage extends StatefulWidget {
   final String title;
   final String subtitle;
   final Widget nextPage;
 
+  // Icon or image
   final IconData? icon;
+  final Color? iconColor;
   final String? assetImage;
+
+  // Optional styles
+  final TextStyle? titleStyle;
+  final TextStyle? subtitleStyle;
+
+  // Optional background
+  final Color? backgroundColor;
 
   const SplashPage({
     super.key,
@@ -16,7 +24,11 @@ class SplashPage extends StatefulWidget {
     required this.subtitle,
     required this.nextPage,
     this.icon,
+    this.iconColor,
     this.assetImage,
+    this.titleStyle,
+    this.subtitleStyle,
+    this.backgroundColor,
   }) : assert(
           icon != null || assetImage != null,
           'Either icon or assetImage must be provided',
@@ -53,9 +65,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     _controller.forward();
 
     Future.delayed(const Duration(milliseconds: 2800), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     });
   }
 
@@ -71,8 +81,11 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   Widget _buildSplashContent() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: widget.backgroundColor ?? theme.scaffoldBackgroundColor,
       body: Center(
         child: AnimatedBuilder(
           animation: _controller,
@@ -88,19 +101,28 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildIconOrImage(),
+              _buildIconOrImage(colorScheme),
               const SizedBox(height: 20),
-              AppText.headingWidget(
-                text: widget.title,
-                alignment: Alignment.center,
-                size: 34,
+              Text(
+                widget.title,
+                textAlign: TextAlign.center,
+                style: widget.titleStyle ??
+                    GoogleFonts.poppins(
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
               ),
               const SizedBox(height: 12),
-              AppText.labelWidget(
-                text: widget.subtitle,
-                size: 13,
-                color: AppColors.gray400,
+              Text(
+                widget.subtitle,
                 textAlign: TextAlign.center,
+                style: widget.subtitleStyle ??
+                    GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                    ),
               ),
             ],
           ),
@@ -109,7 +131,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildIconOrImage() {
+  Widget _buildIconOrImage(ColorScheme colorScheme) {
     if (widget.assetImage != null) {
       return Image.asset(
         widget.assetImage!,
@@ -121,7 +143,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     return Icon(
       widget.icon,
       size: 90,
-      color: AppColors.primary,
+      color: widget.iconColor ?? colorScheme.primary,
     );
   }
 }

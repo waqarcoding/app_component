@@ -17,26 +17,25 @@ class RadioGroupWidget<T> extends StatefulWidget {
   const RadioGroupWidget({
     super.key,
     required this.items,
-
     this.onChanged,
 
     // Text
-    this.titleBuilder,
-    this.subtitleBuilder,
-    this.titleStyle = const TextStyle(color: Colors.white),
-    this.subtitleStyle = const TextStyle(color: Colors.white70),
+    this.title,
+    this.subtitle,
+    this.titleStyle,
+    this.subtitleStyle,
 
     // Selected / Unselected text colors
-    this.selectedTitleColor = Colors.white,
-    this.unselectedTitleColor = Colors.black,
-    this.selectedSubtitleColor = Colors.white70,
-    this.unselectedSubtitleColor = Colors.black45,
+    this.selectedTitleColor,
+    this.unselectedTitleColor,
+    this.selectedSubtitleColor,
+    this.unselectedSubtitleColor,
 
     // LEFT Radio Icons
     this.selectedRadioIcon = Icons.radio_button_checked,
     this.unselectedRadioIcon = Icons.radio_button_unchecked,
-    this.selectedRadioIconColor = Colors.white,
-    this.unselectedRadioIconColor = Colors.grey,
+    this.selectedRadioIconColor,
+    this.unselectedRadioIconColor,
     this.radioIconSize = 24,
 
     // RIGHT Trailing Icons
@@ -47,8 +46,8 @@ class RadioGroupWidget<T> extends StatefulWidget {
     this.trailingIconSize = 18,
 
     // UI
-    this.backgroundColor = Colors.white,
-    this.selectedBackgroundColor = Colors.blue,
+    this.unSelectedBackgroundColo = Colors.white,
+    this.selectedunSelectedBackgroundColo = Colors.blue,
     this.borderRadius = 12,
     this.borderWidth = 1,
     this.borderColor = Colors.transparent,
@@ -64,8 +63,8 @@ class RadioGroupWidget<T> extends StatefulWidget {
   final ValueChanged<T>? onChanged;
 
   // Text
-  final String Function(T)? titleBuilder;
-  final String Function(T)? subtitleBuilder;
+  final String? title;
+  final String? subtitle;
   final TextStyle? titleStyle;
   final TextStyle? subtitleStyle;
 
@@ -90,8 +89,8 @@ class RadioGroupWidget<T> extends StatefulWidget {
   final double trailingIconSize;
 
   // UI
-  final Color? backgroundColor;
-  final Color? selectedBackgroundColor;
+  final Color? unSelectedBackgroundColo;
+  final Color? selectedunSelectedBackgroundColo;
   final double borderRadius;
   final double borderWidth;
   final Color? borderColor;
@@ -124,7 +123,7 @@ class _RadioGroupWidgetState<T> extends State<RadioGroupWidget<T>> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final colorScheme = theme.colorScheme;
     return Column(
       children: List.generate(widget.items.length, (index) {
         final item = widget.items[index];
@@ -140,64 +139,84 @@ class _RadioGroupWidgetState<T> extends State<RadioGroupWidget<T>> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? widget.selectedBackgroundColor
-                    : widget.backgroundColor ?? theme.cardColor,
+                    ? (widget.selectedunSelectedBackgroundColo ??
+                        colorScheme.primary)
+                    : (widget.unSelectedBackgroundColo ?? colorScheme.surface),
                 borderRadius: BorderRadius.circular(widget.borderRadius),
                 border: Border.all(
                   width: widget.borderWidth,
                   color: widget.borderColor ??
-                      (isSelected ? theme.colorScheme.primary : theme.dividerColor),
+                      (isSelected
+                          ? theme.colorScheme.primary
+                          : theme.dividerColor),
                 ),
               ),
-              child:   Row(
-            children: [
-            Icon(
-            isSelected ? widget.selectedRadioIcon : widget.unselectedRadioIcon,
-              size: widget.radioIconSize,
-              color: isSelected
-                  ? widget.selectedRadioIconColor
-                  : widget.unselectedRadioIconColor,
-            ),
-              const SizedBox(width: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    isSelected
+                        ? widget.selectedRadioIcon
+                        : widget.unselectedRadioIcon,
+                    size: widget.radioIconSize,
+                    color: isSelected
+                        ? widget.selectedRadioIconColor ?? colorScheme.surface
+                        : widget.unselectedRadioIconColor ??
+                            colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                  const SizedBox(width: 12),
 
-              // Title + Subtitle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.titleBuilder?.call(item) ?? item.toString(),
-                      style: widget.titleStyle?.copyWith(
-                        color: isSelected
-                            ? widget.selectedTitleColor
-                            : widget.unselectedTitleColor,
-                      ),
-                    ),
-                    if (widget.subtitleBuilder != null) SizedBox(height: 4),
-                    if (widget.subtitleBuilder != null)
-                      Text(
-                        widget.subtitleBuilder!(item),
-                        style: widget.subtitleStyle?.copyWith(
-                          color: isSelected
-                              ? widget.selectedSubtitleColor
-                              : widget.unselectedSubtitleColor,
+                  // Title + Subtitle
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.toString(),
+                          style: widget.titleStyle ??
+                              TextStyle(
+                                color: isSelected
+                                    ? widget.selectedTitleColor ??
+                                        colorScheme.surface
+                                    : widget.unselectedTitleColor ??
+                                        colorScheme.onSurface,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
                         ),
-                      ),
-                  ],
-                ),
+                        if (widget.subtitle != null) SizedBox(height: 4),
+                        if (widget.subtitle != null)
+                          Text(
+                            item.toString(),
+                            style: widget.subtitleStyle ??
+                                TextStyle(
+                                  color: isSelected
+                                      ? widget.selectedSubtitleColor ??
+                                          colorScheme.surface
+                                      : widget.unselectedSubtitleColor ??
+                                          colorScheme.onSurface
+                                              .withOpacity(0.5),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  if (widget.selectedTrailingIcon != null ||
+                      widget.unselectedTrailingIcon != null)
+                    Icon(
+                      isSelected
+                          ? widget.selectedTrailingIcon
+                          : widget.unselectedTrailingIcon,
+                      size: widget.trailingIconSize,
+                      color: isSelected
+                          ? widget.selectedTrailingColor ?? colorScheme.surface
+                          : widget.unselectedTrailingColor ??
+                              colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                ],
               ),
-
-              if (widget.selectedTrailingIcon != null || widget.unselectedTrailingIcon != null)
-          Icon(
-        isSelected ? widget.selectedTrailingIcon : widget.unselectedTrailingIcon,
-          size: widget.trailingIconSize,
-          color: isSelected
-              ? widget.selectedTrailingColor ?? theme.colorScheme.primary
-              : widget.unselectedTrailingColor ?? theme.disabledColor,
-        ),
-        ],
-        ),
-
             ),
           ),
         );
